@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestauBot - Démo IA Réceptionniste Le Clair de Lune</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --accent: #c9a961;
+            --bg-light: #f8f6f3;
+            --text-dark: #1a1a1a;
+            --text-light: #666;
+            --white: #ffffff;
+            --success: #27ae60;
+            --border: #e0ddd8;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #f8f6f3 0%, #ede9e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            color: var(--text-light);
+            font-weight: 300;
+        }
+
+        .header .demo-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            margin-top: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+
+        .info-card h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-section h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4em;
+            color: var(--accent);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section p, .info-section ul {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-size: 1em;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            padding: 5px 0;
+        }
+
+        .info-section li:before {
+            content: "✦ ";
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 700px;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .chat-header h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .chat-header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 15px 20px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.6;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+        }
+
+        .message-sender {
+            font-size: 0.85em;
+            color: var(--text-light);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .message.user .message-sender {
+            text-align: right;
+        }
+
+        .quick-actions {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .quick-actions-label {
+            font-size: 0.9em;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 18px;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            font-family: 'Lato', sans-serif;
+        }
+
+        .action-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);
+        }
+
+        .chat-input-area {
+            padding: 20px 30px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            font-size: 1em;
+            font-family: 'Lato', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .send-btn {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            width: fit-content;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .typing-indicator.active {
+            display: inline-block;
+        }
+
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-light);
+            margin: 0 3px;
+            animation: typingAnimation 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .chat-container {
+                height: 600px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RestauBot IA</h1>
+            <p class="subtitle">Démo interactive de réceptionniste IA bilingue</p>
+            <span class="demo-badge">DÉMO POUR LE CLAIR DE LUNE</span>
+        </div>
+
+        <div class="main-grid">
+            <div class="info-card">
+                <h2>Le Clair de Lune</h2>
+                
+                <div class="info-section">
+                    <h3>📍 Adresse</h3>
+                    <p>25 Fitzwilliam Square<br>Dublin 2, D02 XY89<br>Irlande</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>⏰ Horaires</h3>
+                    <ul>
+                        <li><strong>Dîner:</strong> Lundi - Samedi</li>
+                        <li><strong>Déjeuner:</strong> Jeudi - Samedi</li>
+                        <li><strong>Fermé:</strong> Dimanche et jours fériés</li>
+                    </ul>
+                </div>
+
+                <div class="info-section">
+                    <h3>🍽️ À propos</h3>
+                    <p>Restaurant gastronomique primé servant une cuisine française et européenne de saison. Menu changeant quotidiennement avec des influences méditerranéennes. Capacité de 28 couverts pour une expérience intime.</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>⭐ Spécialités</h3>
+                    <ul>
+                        <li>Menu dégustation du chef</li>
+                        <li>Petites assiettes à partager</li>
+                        <li>Sélection de vins d'exception</li>
+                        <li>Ingrédients locaux et de saison</li>
+                        <li>Cuisine française moderne</li>
+                    </ul>
+                </div>
+
+                <div class="info-section">
+                    <h3>📞 Contact</h3>
+                    <p><strong>Téléphone:</strong> 0894768354<br>
+                    <strong>Email:</strong> kkmsh96@gmail.com</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>💡 Services</h3>
+                    <ul>
+                        <li>WiFi gratuit disponible</li>
+                        <li>Chaises hautes pour enfants</li>
+                        <li>Accessible PMR</li>
+                        <li>Rappels automatiques par SMS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3>Conversation en Direct</h3>
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span>IA disponible 24/7 - Français & English</span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot">
+                        <div class="message-sender">RestauBot IA</div>
+                        <div class="message-content">
+                            Bonjour et bienvenue au Clair de Lune ! Je suis votre assistant virtuel bilingue. Comment puis-je vous aider aujourd'hui ? 😊<br><br>Hello and welcome to Le Clair de Lune! I'm your bilingual virtual assistant. How may I help you today? 😊
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="quick-actions-label">Suggestions rapides / Quick suggestions:</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="quickMessage('Réserver une table pour 2')">
+                            📅 Réserver
+                        </button>
+                        <button class="action-btn" onclick="quickMessage('Book a table for 2')">
+                            📅 Book
+                        </button>
+                        <button class="action-btn" onclick="quickMessage('Confirmer ma réservation')">
+                            ✅ Confirmer
+                        </button>
+                        <button class="action-btn" onclick="quickMessage('Cancel my reservation')">
+                            ❌ Cancel
+                        </button>
+                        <button class="action-btn" onclick="quickMessage('Où sont les toilettes ?')">
+                            🚻 Toilettes
+                        </button>
+                        <button class="action-btn" onclick="quickMessage('Do you have WiFi?')">
+                            📶 WiFi
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="chat-input-wrapper">
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="userInput" 
+                            placeholder="Écrivez en français ou en anglais..."
+                        >
+                        <button class="send-btn" id="sendButton">Envoyer / Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Détection de langue
+        function detectLanguage(text) {
+            const frenchWords = ['bonjour', 'merci', 'réserv', 'table', 'horaire', 'prix', 'menu', 'végé', 'où', 'quand', 'comment', 'combien', 'avez', 'pouvez', 'voudrais', 'suis', 'restaurant', 'plat', 'cuisine', 'toilette', 'addition', 'commande', 'wifi', 'annuler', 'confirmer', 'modifier'];
+            const englishWords = ['hello', 'thanks', 'book', 'reserve', 'table', 'hours', 'price', 'menu', 'vegan', 'where', 'when', 'how', 'much', 'have', 'can', 'would', 'am', 'restaurant', 'dish', 'food', 'bathroom', 'bill', 'order', 'wifi', 'cancel', 'confirm', 'modify'];
+            
+            const lowerText = text.toLowerCase();
+            let frenchScore = 0;
+            let englishScore = 0;
+
+            frenchWords.forEach(word => {
+                if (lowerText.includes(word)) frenchScore++;
+            });
+
+            englishWords.forEach(word => {
+                if (lowerText.includes(word)) englishScore++;
+            });
+
+            return frenchScore > englishScore ? 'fr' : 'en';
+        }
+
+        // Réponses de l'IA
+        function getAIResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            const lang = detectLanguage(userMessage);
+
+            // Annuler réservation
+            if (msg.includes('annuler') || msg.includes('cancel') || msg.includes('annulation')) {
+                if (lang === 'fr') {
+                    return `Pas de problème pour annuler votre réservation ! 🗓️\n\nPour quelle date aviez-vous réservé ?\n\nContactez-nous :\n📞 0894768354\n📧 kkmsh96@gmail.com\n\nMerci de nous prévenir, cela nous permet de proposer la table à d'autres clients ! 😊`;
+                } else {
+                    return `No problem to cancel your reservation! 🗓️\n\nFor which date did you book?\n\nContact us:\n📞 0894768354\n📧 kkmsh96@gmail.com\n\nThank you for letting us know, this allows us to offer the table to other guests! 😊`;
+                }
+            }
+
+            // Confirmer réservation
+            if (msg.includes('confirmer') || msg.includes('confirm') || msg.includes('confirmation')) {
+                if (lang === 'fr') {
+                    return `Parfait ! Pour confirmer votre réservation : ✅\n\nVous recevrez un rappel automatique par SMS et email 24h avant votre réservation. Vous pourrez confirmer en un seul clic !\n\nOu appelez-nous :\n📞 0894768354\n\nMerci de confirmer, cela nous aide à mieux gérer nos tables ! 😊`;
+                } else {
+                    return `Perfect! To confirm your reservation: ✅\n\nYou'll receive an automatic reminder by SMS and email 24h before your reservation. You can confirm with just one click!\n\nOr call us:\n📞 0894768354\n\nThank you for confirming, it helps us manage our tables better! 😊`;
+                }
+            }
+
+            // Modifier réservation
+            if ((msg.includes('modifier') || msg.includes('changer') || msg.includes('modify') || msg.includes('change')) && (msg.includes('réservation') || msg.includes('reservation') || msg.includes('booking'))) {
+                if (lang === 'fr') {
+                    return `Vous souhaitez modifier votre réservation ? Aucun problème ! 🔄\n\nContactez-nous :\n📞 0894768354\n📧 kkmsh96@gmail.com\n\nDites-nous ce que vous souhaitez changer (date, heure, nombre de personnes) et nous ferons notre maximum ! 😊`;
+                } else {
+                    return `You want to modify your reservation? No problem! 🔄\n\nContact us:\n📞 0894768354\n📧 kkmsh96@gmail.com\n\nTell us what you'd like to change (date, time, number of people) and we'll do our best! 😊`;
+                }
+            }
+
+            // Rappel
+            if (msg.includes('rappel') || msg.includes('reminder') || msg.includes('sms') || msg.includes('notification')) {
+                if (lang === 'fr') {
+                    return `Nous envoyons automatiquement des rappels ! 📱\n\n✅ SMS 24h avant votre réservation\n✅ Email de confirmation\n✅ Confirmation en un clic\n\nCela réduit les no-shows de 40% et vous aide à ne pas oublier !\n\nVous recevrez le rappel sur le numéro/email fourni lors de la réservation. 😊`;
+                } else {
+                    return `We automatically send reminders! 📱\n\n✅ SMS 24h before your reservation\n✅ Confirmation email\n✅ One-click confirmation\n\nThis reduces no-shows by 40% and helps you remember!\n\nYou'll receive the reminder on the number/email provided when booking. 😊`;
+                }
+            }
+
+            // Questions de salle - Commande
+            if ((msg.includes('commande') || msg.includes('order')) && (msg.includes('où') || msg.includes('where') || msg.includes('status') || msg.includes('long'))) {
+                if (lang === 'fr') {
+                    return `Je suis l'assistant de réservation et je n'ai pas accès aux informations de cuisine en temps réel. 👨‍🍳\n\nPour connaître l'état de votre commande, demandez à votre serveur qui pourra vérifier.\n\nAutre chose pour vous aider ?`;
+                } else {
+                    return `I'm the reservation assistant and don't have access to real-time kitchen information. 👨‍🍳\n\nTo check your order status, please ask your server.\n\nAnything else I can help with?`;
+                }
+            }
+
+            // L'addition
+            if (msg.includes('addition') || msg.includes('note') || msg.includes('bill') || msg.includes('check') || msg.includes('pay')) {
+                if (lang === 'fr') {
+                    return `Pour demander l'addition, attirez l'attention de votre serveur. 💳\n\nOu présentez-vous à la caisse.\n\nMerci de votre visite au Clair de Lune ! 😊`;
+                } else {
+                    return `To request the bill, get your server's attention. 💳\n\nOr go to the cashier.\n\nThank you for visiting Le Clair de Lune! 😊`;
+                }
+            }
+
+            // Toilettes
+            if (msg.includes('toilette') || msg.includes('wc') || msg.includes('bathroom') || msg.includes('restroom')) {
+                if (lang === 'fr') {
+                    return `Les toilettes se trouvent **au fond de la salle, sur la gauche**. 🚻\n\nVous ne pouvez pas les manquer !\n\nAutre chose ?`;
+                } else {
+                    return `The bathrooms are **at the back of the dining room, on the left**. 🚻\n\nYou can't miss them!\n\nAnything else?`;
+                }
+            }
+
+            // WiFi
+            if (msg.includes('wifi') || msg.includes('wi-fi') || msg.includes('internet') || msg.includes('password') || msg.includes('mot de passe')) {
+                if (lang === 'fr') {
+                    return `Nous avons le WiFi gratuit ! 📶\n\n**Réseau :** ClairDeLune_Guest\n**Mot de passe :** Demandez à votre serveur\n\nLe mot de passe change régulièrement pour la sécurité.`;
+                } else {
+                    return `We have free WiFi! 📶\n\n**Network:** ClairDeLune_Guest\n**Password:** Ask your server\n\nThe password changes regularly for security.`;
+                }
+            }
+
+            // Chaise haute
+            if (msg.includes('chaise haute') || msg.includes('bébé') || msg.includes('enfant') || msg.includes('high chair') || msg.includes('baby') || msg.includes('child')) {
+                if (lang === 'fr') {
+                    return `Oui, nous avons des chaises hautes ! 👶\n\nDemandez à votre serveur.\n\nNous accueillons les familles avec plaisir !`;
+                } else {
+                    return `Yes, we have high chairs! 👶\n\nJust ask your server.\n\nWe welcome families!`;
+                }
+            }
+
+            // Réservations
+            if (msg.includes('réserv') || msg.includes('book')) {
+                if (lang === 'fr') {
+                    return `Excellent choix ! Pour réserver au Clair de Lune :\n\n📞 0894768354 (recommandé)\n📧 kkmsh96@gmail.com\n\nPour quelle date et combien de personnes ? 😊`;
+                } else {
+                    return `Excellent choice! To book at Le Clair de Lune:\n\n📞 0894768354 (recommended)\n📧 kkmsh96@gmail.com\n\nFor which date and how many people? 😊`;
+                }
+            }
+
+            // Horaires
+            if (msg.includes('heure') || msg.includes('horaire') || msg.includes('ouvert') || msg.includes('hour') || msg.includes('open')) {
+                if (lang === 'fr') {
+                    return `Nos horaires :\n\n🍽️ **Dîner** : Lundi - Samedi\n🥗 **Déjeuner** : Jeudi - Samedi\n🚫 **Fermé** : Dimanche\n\nRéservation recommandée (28 couverts seulement) ! ⭐`;
+                } else {
+                    return `Our hours:\n\n🍽️ **Dinner**: Monday - Saturday\n🥗 **Lunch**: Thursday - Saturday\n🚫 **Closed**: Sunday\n\nReservation recommended (only 28 seats)! ⭐`;
+                }
+            }
+
+            // Menu
+            if (msg.includes('menu') || msg.includes('plat') || msg.includes('dish') || msg.includes('food')) {
+                if (lang === 'fr') {
+                    return `Notre menu change quotidiennement ! 🍽️\n\n✦ Menu dégustation du chef\n✦ Petites assiettes françaises\n✦ Ingrédients de saison\n✦ Options végétariennes\n\nPrix : 30-50€/personne. Réserver ?`;
+                } else {
+                    return `Our menu changes daily! 🍽️\n\n✦ Chef's tasting menu\n✦ French small plates\n✦ Seasonal ingredients\n✦ Vegetarian options\n\nPrice: 30-50€/person. Book?`;
+                }
+            }
+
+            // Prix
+            if (msg.includes('prix') || msg.includes('price') || msg.includes('cost')) {
+                if (lang === 'fr') {
+                    return `Prix moyen : **30-50€/personne**. 💰\n\nExcellent rapport qualité-prix pour une expérience gastronomique !`;
+                } else {
+                    return `Average price: **30-50€/person**. 💰\n\nExcellent value for a gastronomic experience!`;
+                }
+            }
+
+            // Adresse
+            if (msg.includes('où') || msg.includes('adresse') || msg.includes('where') || msg.includes('address') || msg.includes('located')) {
+                if (lang === 'fr') {
+                    return `Nous sommes à Fitzwilliam Square ! 📍\n\n**Adresse :** 25 Fitzwilliam Square, Dublin 2, D02 XY89\n\nProche de National Gallery et St. Stephen's Green !`;
+                } else {
+                    return `We're at Fitzwilliam Square! 📍\n\n**Address:** 25 Fitzwilliam Square, Dublin 2, D02 XY89\n\nClose to National Gallery and St. Stephen's Green!`;
+                }
+            }
+
+            // Contact
+            if (msg.includes('contact') || msg.includes('téléphone') || msg.includes('phone') || msg.includes('email')) {
+                if (lang === 'fr') {
+                    return `Nos coordonnées : 📞\n\n**Téléphone :** 0894768354\n**Email :** kkmsh96@gmail.com\n\nN'hésitez pas à nous contacter !`;
+                } else {
+                    return `Our contact details: 📞\n\n**Phone:** 0894768354\n**Email:** kkmsh96@gmail.com\n\nFeel free to contact us!`;
+                }
+            }
+
+            // Par défaut
+            if (lang === 'fr') {
+                return `Je peux vous aider avec :\n\n✦ Réservations\n✦ Horaires et menu\n✦ Services (WiFi, toilettes)\n✦ Confirmations/Annulations\n\nQue puis-je faire pour vous ? 😊\n\n📞 0894768354`;
+            } else {
+                return `I can help you with:\n\n✦ Reservations\n✦ Hours and menu\n✦ Services (WiFi, bathrooms)\n✦ Confirmations/Cancellations\n\nHow can I help? 😊\n\n📞 0894768354`;
+            }
+        }
+
+        // Ajouter un message
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const senderLabel = sender === 'user' ? 'Vous / You' : 'RestauBot IA';
+            
+            messageDiv.innerHTML = `
+                <div class="message-sender">${senderLabel}</div>
+                <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Indicateur de frappe
+        function showTyping() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const indicator = document.createElement('div');
+            indicator.className = 'message bot';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `
+                <div class="message-sender">RestauBot IA</div>
+                <div class="typing-indicator active">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            messagesDiv.appendChild(indicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideTyping() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // Envoyer un message
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 1500);
+        }
+
+        // Message rapide
+        function quickMessage(message) {
+            addMessage(message, 'user');
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 1500);
+        }
+
+        // Event listeners
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Message de bienvenue
+        setTimeout(() => {
+            addMessage("N'hésitez pas à me poser des questions en français ou en anglais ! Je peux vous aider avec les réservations, confirmations, annulations, et bien plus. 🍽️", 'bot');
+        }, 2000);
+    </script>
+</body>
+</html>
